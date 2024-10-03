@@ -1,0 +1,27 @@
+{
+    "id": "7FA69141",
+    "path": "~/PhD/PhDCode/make_dummy_dataset.R",
+    "project_path": "make_dummy_dataset.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1727989134962.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "tempName": "Untitled1",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "24,10",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1727989227,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1727989227659,
+    "read_only": false,
+    "read_only_alternatives": []
+}
