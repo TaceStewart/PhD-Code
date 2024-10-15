@@ -2,6 +2,7 @@
 library(ggplot2)
 
 # Load data
+setwd("~/PhD/PhDCode")
 grid <- read.csv("dummy_dataset.csv")
 
 # Plot species presence
