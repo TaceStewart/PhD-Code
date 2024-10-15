@@ -4,7 +4,7 @@ library(terra)
 library(prioritizr)
 
 # Load data
-setwd("~/PhD/PhDCode")
+setwd("~/PhD/PhD-Code")
 grid <- read.csv("dummy_dataset.csv")
 
 # Get nrow and ncol from grid
@@ -75,7 +75,8 @@ grid$predicted_species_future <- predict(sdm_model,
                                          type = "response")
 
 # Convert the future species projection into a raster format
-future_species_rast <- rast(matrix(grid$predicted_species_future, nrow = nrow, ncol = ncol))
+future_species_rast <- rast(matrix(grid$predicted_species_future, 
+                                   nrow = nrow, ncol = ncol))
 
 # Use future species presence data as an input feature in prioritizr
 problem_future <- problem(cost_data, future_species_rast) %>%
@@ -175,10 +176,12 @@ p1 <- ggplot(solution_present_df, aes(x = x, y = y)) +
   scale_fill_viridis_c() +
   coord_fixed() +
   theme_minimal() +
-  labs(title = paste("Current Protection - Present Benefit:", 
-                     round(objective_present_pv$absolute_held, 2)),
+  labs(title = "Present Protection", 
+       subtitle = paste("Future Benefit:",
+                     round(objective_present_fv$absolute_held, 2)),
        fill = "Protection") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
 
 # Plot for future solution
 p2 <- ggplot(solution_future_df, aes(x = x, y = y)) +
@@ -186,10 +189,18 @@ p2 <- ggplot(solution_future_df, aes(x = x, y = y)) +
   scale_fill_viridis_c() +
   coord_fixed() +
   theme_minimal() +
-  labs(title = paste("Future Protection - Future Benefit:", 
-                     round(objective_future_fv$absolute_held, 2)),
+  labs(title = "Future Protection", 
+       subtitle = paste("Future Benefit:",
+                        round(objective_future_fv$absolute_held, 2)),
        fill = "Protection") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
 
 # Arrange the two plots side by side
 grid.arrange(p1, p2, ncol = 2)
+
+# Save the plots
+ggsave("present_vs_future_protection.png", 
+       arrangeGrob(p1, p2, ncol = 2), 
+       width = 10, height = 5, dpi = 300)
+
