@@ -65,7 +65,7 @@ grid$predicted_species_present <- predict(sdm_model,
                                           newdata = grid, 
                                           type = "response")
 
-# Simulate future temperature data (you can replace this with real climate model data)
+# Simulate future temperature data (can replace this with real climate model data)
 grid$future_temperature <- grid$temperature + 2  # Assume a 2-degree increase for future scenario
 
 # Predict species presence for future temperature
