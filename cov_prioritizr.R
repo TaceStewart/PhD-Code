@@ -6,7 +6,7 @@ library(gridExtra)
 
 # Load data
 setwd("~/PhD/PhD-Code")
-grid <- read.csv("dummy_dataset.csv")
+grid <- read.csv("cov_species_data.csv") #"dummy_dataset.csv"
 
 # Get nrow and ncol from grid
 nrow <- ceiling(max(grid$x))
@@ -55,9 +55,9 @@ plot(solution_present, main = "Optimised Protected Areas")
 # 2. Fit a logistic regression model using covariates as the predictor
 library(dplyr)
 
-# Fit a logistic regression model using temperature
+# Fit a logistic regression model using multiple covariates
 sdm_model <- glm(data = grid, 
-                 species_present ~ temperature, 
+                 species_present ~ cov1 + cov2 + cov3, 
                  family = binomial)
 
 # Summarize the model
@@ -69,39 +69,68 @@ grid$predicted_species_present <- predict(sdm_model,
                                           type = "response")
 
 # Simulate future covariate data with randomised increases for each cell
-grid$future_temp <- grid$temperature + runif(nrow(grid), 
-                                             min = 0, 
-                                             max = 10)
+grid$future_cov1 <- grid$cov1 + runif(n = nrow(grid), min = 0.5, max = 1.5)  # Random increase between 0.5 and 1.5
+grid$future_cov2 <- grid$cov2 + runif(n = nrow(grid), min = 1, max = 2)      # Random increase between 1 and 2
+grid$future_cov3 <- grid$cov3 + runif(n = nrow(grid), min = 2, max = 3)      # Random increase between 2 and 3
 
 # Plot all covariates
-current_temp_plot <- ggplot(grid, aes(x = x, y = y)) +
-  geom_tile(aes(fill = temperature)) +
+cov1_plot <- ggplot(grid, aes(x = x, y = y)) +
+  geom_tile(aes(fill = cov1)) +
   scale_fill_viridis_c() +
   coord_fixed() +
   theme_minimal() +
   labs(title = "Current Temperature", fill = "Temperature") +
   theme(plot.title = element_text(hjust = 0.5))
-future_temp_plot <- ggplot(grid, aes(x = x, y = y)) +
-  geom_tile(aes(fill = future_temp)) +
+cov2_plot <- ggplot(grid, aes(x = x, y = y)) +
+  geom_tile(aes(fill = cov2)) +
+  scale_fill_viridis_c() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Current Precipitation", fill = "Precipitation") +
+  theme(plot.title = element_text(hjust = 0.5))
+cov3_plot <- ggplot(grid, aes(x = x, y = y)) +
+  geom_tile(aes(fill = cov3)) +
+  scale_fill_viridis_c() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Current Elevation", fill = "Elevation") +
+  theme(plot.title = element_text(hjust = 0.5))
+future_cov1_plot <- ggplot(grid, aes(x = x, y = y)) +
+  geom_tile(aes(fill = future_cov1)) +
   scale_fill_viridis_c() +
   coord_fixed() +
   theme_minimal() +
   labs(title = "Future Temperature", fill = "Temperature") +
   theme(plot.title = element_text(hjust = 0.5))
+future_cov2_plot <- ggplot(grid, aes(x = x, y = y)) +
+  geom_tile(aes(fill = future_cov2)) +
+  scale_fill_viridis_c() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Future Precipitation", fill = "Precipitation") +
+  theme(plot.title = element_text(hjust = 0.5))
+future_cov3_plot <- ggplot(grid, aes(x = x, y = y)) +
+  geom_tile(aes(fill = future_cov3)) +
+  scale_fill_viridis_c() +
+  coord_fixed() +
+  theme_minimal() +
+  labs(title = "Future Elevation", fill = "Elevation") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Arrange the plots side by side
-temp_change_plot <- grid.arrange(current_temp_plot, 
-                                 future_temp_plot, 
-                                 ncol = 2)
+covariates_plot <- grid.arrange(cov1_plot, cov2_plot, cov3_plot, 
+                                future_cov1_plot, future_cov2_plot, future_cov3_plot, 
+                                ncol = 3)
 
 # Save the plot
-ggsave("5x5Temps.png", temp_change_plot, 
-       width = 10, height = 5, dpi = 300)
+ggsave("covariates.png", covariates_plot, width = 10, height = 5, dpi = 300)
 
 # Predict species presence for future temperature
 grid$predicted_species_future <- predict(sdm_model, 
                                          newdata = grid %>% 
-                                           mutate(temp = future_temp), 
+                                           mutate(cov1 = future_cov1,
+                                                  cov2 = future_cov2,
+                                                  cov3 = future_cov3), 
                                          type = "response")
 
 # Convert the future species projection into a raster format
@@ -137,7 +166,7 @@ present_vs_future_species <- grid.arrange(present_spp_plot,
                                           future_spp_plot, ncol = 2)
 
 # Save the plots
-ggsave("5x5present_vs_future_species.png", 
+ggsave("present_vs_future_species.png", 
        present_vs_future_species, 
        width = 10, height = 5, dpi = 300)
 
@@ -190,6 +219,16 @@ summary_table <- data.frame(Solution = c("Current Species Model", "Future Specie
                                                 objective_future_pv$absolute_held),
                             Future_Benefit = c(objective_present_fv$absolute_held, 
                                                objective_future_fv$absolute_held))
+
+# Plot the present solution
+present_plot <- plot(solution_present, 
+                     main = "Protected Areas Based on Current Species Presence")
+
+# Plot the future solution
+future_plot <- plot(solution_future, 
+                    main = "Protected Areas Based on Future Species Presence")
+
+# Arrange plots together
 
 # Calculate overlap between the two solutions
 overlap <- solution_present * solution_future
@@ -255,7 +294,7 @@ p2 <- ggplot(solution_future_df, aes(x = x, y = y)) +
 grid.arrange(p1, p2, ncol = 2)
 
 # Save the plots
-ggsave("5x5present_vs_future_protection.png", 
+ggsave("present_vs_future_protection.png", 
        arrangeGrob(p1, p2, ncol = 2), 
        width = 10, height = 5, dpi = 300)
 
