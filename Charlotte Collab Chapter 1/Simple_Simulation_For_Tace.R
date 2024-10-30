@@ -211,12 +211,13 @@ ggsave("covariates.png", width = 10, height = 5, dpi = 300)
 beta0 <- -2  # Intercept
 beta1 <- 2   # Coefficient for cov 1
 beta2 <- 0.1 # Coefficient for cov 2
+beta3 <- 0.5 # Coefficient for cov 3
 
 # Print the expected mean intensity (assuming mean of covariate is 0)
-exp(beta0 + beta1*(0) + beta2*(0))
+exp(beta0 + beta1*(0) + beta2*(0) + beta3*(0))
 
 # Calculate the fixed effect
-fe <- beta0 + beta1*cov1.mat[, "cov"] + beta2*cov2.mat[, "cov"] 
+fe <- beta0 + beta1*cov1.mat[, "cov"] + beta2*cov2.mat[, "cov"] + beta3*cov3.mat[, "cov"]
 
 # Make the mean 
 mu <- cov1.df %>% mutate(cov = fe)
@@ -233,13 +234,13 @@ spp_process <- cbind(x = ipp$x, y = ipp$y)
 
 # You can also thin your Poisson Point Process by a probability which would 
 # simulate random sampling of species.
-detect.prob = 0.01
+# detect.prob = 0.01
 
 # Thin the process by the probability
-thin <- cbind(spp_process, 
-              presence = rbinom(nrow(spp_process), 1, detect.prob))
+# thin <- cbind(spp_process, 
+              # presence = rbinom(nrow(spp_process), 1, detect.prob))
 
-thin <- thin[thin[, "presence"] == 1, ]
+# thin <- thin[thin[, "presence"] == 1, ]
 
 # In this plot black is the original species occurrences and red is the 
 # thinned species occurrences.
@@ -251,9 +252,9 @@ cov1 %>%
   coord_fixed() +
   geom_point(data = spp_process, 
              aes(x = x, y = y), 
-             color = "black", size = 0.5) +
-  geom_point(data = thin, aes(x = x, y = y), 
-             color = "red", size = 0.5) +
+             color = "black", size = 0.5, alpha = 0.5) +
+  # geom_point(data = thin, aes(x = x, y = y), 
+  #            color = "red", size = 0.5) +
   theme_bw() +
   theme(axis.title.x = element_blank(),
         axis.title.y = element_blank(),
