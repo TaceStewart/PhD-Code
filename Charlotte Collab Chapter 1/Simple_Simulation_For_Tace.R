@@ -1,5 +1,9 @@
 # Made by Charlotte for Tace, 2024 #
 
+# Clear the environment and console
+rm(list = ls())
+cat("\014")
+
 # Load libraries
 library(ggplot2)
 library(dplyr)
@@ -27,14 +31,14 @@ library(RISDM)
 
 # START with set up of resolution and north/east step length for later Site A 
 # and B grid creation.
-ncol <- 1000
-nrow <- 1000
+ncol <- 500
+nrow <- 500
 res <- 1
 
 east_min <- 0
-east_max <- 1000
+east_max <- 500
 north_min <- 0
-north_max <- 1000
+north_max <- 500
 
 # We generate the grid resolution from min, max dimensions 
 # and the number of pixels
@@ -262,21 +266,30 @@ cov1 %>%
         legend.title = element_blank(),
         plot.margin = unit(c(0.5, 0.1, 0.5, 0.1), "lines"),
         plot.title = element_text(hjust = 0.5)) +
-  ggtitle('Species Occurrences')
+  ggtitle('Species Occurrence')
 
 # Save plot
-ggsave("species_occurrences.png", width = 5, height = 5, dpi = 300)
+ggsave("species_occurrence.png", width = 5, height = 5, dpi = 300)
 
 # Merge covariates data frames and species presence
 covs <- merge(cov1.df, cov2.df, by = c("x", "y")) %>%
   merge(cov3.df, by = c("x", "y"))
 colnames(covs) <- c("x", "y", "cov1", "cov2", "cov3")
 
-# Add species presence with location rounded to nearest 0.5
-covs$species_present <- 0
-covs$species_present[match(paste(covs$x, covs$y), 
-                           paste(ceiling(spp_process[,"x"]*2)/2, 
-                                 ceiling(spp_process[,"y"]*2)/2))] <- 1
+# Add species presence to closest grid cell for each spp_process
+spp_process <- spp_process %>%
+  as.data.frame() %>%
+  mutate(x_rnd = round(x*2)/2, y_rnd = round(y*2)/2) 
+
+summed_spp <- spp_process %>%
+  group_by(x_rnd, y_rnd) %>%
+  summarise(n = n())
+
+new_table <- merge(covs, summed_spp, by.x = c("x", "y"), 
+                   by.y = c("x_rnd", "y_rnd"), all.x = TRUE) %>%
+  mutate(n = ifelse(is.na(n), 0, n)) %>%
+  mutate(species_present = ifelse(n > 0, 1, 0))
+
 
 # Save the data frame
-write.csv(covs, "cov_species_data.csv", row.names = FALSE)
+write.csv(new_table, "cov_species_data.csv", row.names = FALSE)
